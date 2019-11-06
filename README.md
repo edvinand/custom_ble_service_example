@@ -28,7 +28,7 @@ Nordic Semiconductor added Segger Embedded Studio support in SDKv14.1.0 and the 
 3. Create a copy of the folder and name it `custom_ble_service_example`.
 4. Navigate to custom_ble_service_example\pca10040\s132\ses and open the `ble_app_template_pca10040_s132.emProject` project.
 
-**Step 2 - Creating a Custom Base UUID**
+**Step 2 - Creating a Custom Base UUID**</br>
 The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files in the same folder as the main.c file. At the top of the header file ble_cus.h we'll need to include the following .h files:
 ```C
 /* This code belongs in ble_cus.h */
@@ -54,7 +54,7 @@ Now that we have defined our Base UUID, we need to define a 16-bit UUID for the 
 #define CUSTOM_VALUE_CHAR_UUID            0x1401
 ```
 The values for the 16-bit UUIDs that will be inserted into the base UUID can be coosen by random.
-**Step 3 - Implementing the Custom Service**
+**Step 3 - Implementing the Custom Service**</br>
 First things first, we need to include the ble_cus.h header file we just created as well as some common SDK header files in ble_cus.c.
 ```C
 /* This code belongs in ble_cus.c */
@@ -114,4 +114,98 @@ The next step is to add a forward declaration of the ble_cus_t type. You need to
 typedef struct ble_cus_s ble_cus_t;
 ```
 *Now the project should compile again*<br/>
-The first function we're going to implement is the ble_cus_init function, which we're going to initialize our service with. First, we need to do (not done)
+The first function we're going to implement is the ble_cus_init function, which we're going to initialize our service with. The first thing we need to do is to add its function declaration in the ble_cus.h file.
+```C
+/* This code belongs in ble_cus.c */
+
+/**@brief Function for initializing the Custom Service.
+ *
+ * @param[out]  p_cus       Custom Service structure. This structure will have to be supplied by
+ *                          the application. It will be initialized by this function, and will later
+ *                          be used to identify this particular service instance.
+ * @param[in]   p_cus_init  Information needed to initialize the service.
+ *
+ * @return      NRF_SUCCESS on successful initialization of service, otherwise an error code.
+ */
+ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init);
+```
+The first thing we should do upon entering ble_cus_init is to check that none of the pointers that we passed as arguments are NULL and declare the two variables err_code and ble_uuid.
+```C
+/* This code belongs in ble_cus.c */
+uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    if (p_cus == NULL || p_cus_init == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    
+    ret_code_t  err_code;
+    ble_uuid_t  ble_uuid;
+}
+```
+After verifying that the pointers are valid we can initialize the Custom Service structure
+```C
+/* This code belongs in ble_cus_init() in ble_cus.c*/
+
+// Initialize service structure
+p_cus->conn_handle               = BLE_CONN_HANDLE_INVALID;
+```
+This consists of setting the connection handle to invalid (should only be valid when we're in a connection). Next, we're going to add our custom (also referred to as vendor specific) base UUID to the BLE stack's table.
+```C
+/* This code belongs in ble_cus_init() ble_cus.c*/
+
+// Add Custom Service UUID
+ble_uuid128_t base_uuid = {CUSTOM_SERVICE_UUID_BASE};
+err_code =  sd_ble_uuid_vs_add(&base_uuid, &p_cus->uuid_type);
+VERIFY_SUCCESS(err_code);
+
+ble_uuid.type = p_cus->uuid_type;
+ble_uuid.uuid = CUSTOM_SERVICE_UUID;
+```
+We're almost done, the last thing we have to do is to add the Custom Service declaration to the BLE Stack's GATT table.
+```C
+/* This code belongs in ble_cus_init() in ble_cus.c*/
+
+// Add the Custom Service
+err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_cus->service_handle);
+if (err_code != NRF_SUCCESS)
+{
+    return err_code;
+}
+```
+If you have followed the steps correctly, then the ble_cus_init should look like this:
+```C
+/* This code belongs in ble_cus.c*/
+
+uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    if (p_cus == NULL || p_cus_init == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    ret_code_t  err_code;
+    ble_uuid_t  ble_uuid;
+
+    // Initialize service structure
+    p_cus->conn_handle               = BLE_CONN_HANDLE_INVALID;
+
+    // Add Custom Service UUID
+    ble_uuid128_t base_uuid = {CUSTOM_SERVICE_UUID_BASE};
+    err_code =  sd_ble_uuid_vs_add(&base_uuid, &p_cus->uuid_type);
+    VERIFY_SUCCESS(err_code);
+    
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = CUSTOM_SERVICE_UUID;
+
+    // Add the Custom Service
+    err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_cus->service_handle);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    return err_code;
+}
+```
+**Step 3 - Initializing the Service and adavertising our 128-bit UUID.**</br>
+More to come
