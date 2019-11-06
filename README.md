@@ -1,1 +1,2 @@
-# custom_ble_service_example
+# Custom Service Tutorial
+
