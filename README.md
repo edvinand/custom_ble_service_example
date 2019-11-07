@@ -319,7 +319,7 @@ MEMORY
 **Segger Embedded Studio(SES):** Click "Project -> Edit Options", select the Common Configuration, then select Linker and then open the Section Placement Macros Section and modify RAM_START IRAM1 to 0x20002220 and RAM_SIZE to 0xDDE0, as shown in the screenshot below
 Memory Settings Segger Embedded Studio | 
 ------------ |
-<img src="https://github.com/bjornspockeli/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_SES.JPG" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_SES.JPG" width="1000"> |
 
 **Keil:** Click "Options for Target" in Keil and modify the Read/Write Memory Areas so that IRAM1 has the start address 0x20002220 and size 0xDDE0, as shown in the screenshot below
 
