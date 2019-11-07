@@ -316,13 +316,17 @@ MEMORY
   RAM (rwx) : ORIGIN = 0x20002220, LENGTH = 0xdde0
 }
 ```
-**Segger Embedded Studio(SES):** Click "Project -> Edit Options", select the Common Configuration, then select Linker and then open the Section Placement Macros Section and modify RAM_START IRAM1 to 0x20002220 and RAM_SIZE to 0xDDE0, as shown in the screenshot below
+**Segger Embedded Studio(SES):** Click "Project -> Edit Options", select the Common Configuration, then select Linker and then open the Section Placement Macros Section and modify RAM_START to 0x20002220 and RAM_SIZE to 0xDDE0, as shown in the screenshot below
 Memory Settings Segger Embedded Studio | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_SES.JPG" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_3_0_SES.jpg" width="1000"> |
 
 **Keil:** Click "Options for Target" in Keil and modify the Read/Write Memory Areas so that IRAM1 has the start address 0x20002220 and size 0xDDE0, as shown in the screenshot below
 
 Memory Settings Keil | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_3_0_Keil.JPG" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_3_0_Keil.jpg" width="1000"> |
+
+The final step we have to do is to change the calling order in main() so that services_init() is called before advertising_init().
+This is because we need to add the CUSTOM_SERVICE_UUID_BASE to the BLE stack's table using sd_ble_uuid_vs_add() in ble_cus_init() before we call advertising_init(). Doing it the other way around will cause advertising_init() to return an error code.</br>
+That should be it. Compile the ble_app_template project, flash the S132 v6.1.1 SoftDevice *(If you use segger embedded Studio this is done automatically by the IDE)* and then flash the ble_app_template application. LED1 on your nRF52DK should now start blinking, indicating that it is advertising. Use nRF Connect for Android/iOS to scan for the device and view the content of the advertisement package. If you connect to the device you should see the service listed as an "Unknown Service" since we're using a vendor-specific UUID. 
