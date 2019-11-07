@@ -519,7 +519,7 @@ Compile the project and flash it to your nRF52832 DK. If you open the nRF Connec
 
 Service and Characteristic | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_connected_service_char.jpg" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_connected_service_char.jpg" width="250"> |
 
 ### Step 6 - Handling events from the SoftDevice.
 Great, we now have a Custom Service and a Custom Value Characteristic, but we want to be able to write to the characteristic and perform a specific task based on the value that was written to the characteristic, e.g. turn on a LED. However, before we can do that we need to do some event handling in ble_cus.h and ble_cus.c.</br>
@@ -1213,7 +1213,7 @@ Compile the project and flash it to your nRF5x DK. If you open the nRF Connect a
 
 Memory Settings Keil | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="250"> |
 
 We're now ready to notify some values from the nRF5x DK to the nRF Connect app. In order to do that we're going to create an application timer that calls ble_cus_custom_value_update() at a regular interval and then start it when we get the BLE_CUS_EVT_NOTIFICATION_ENABLED event. So first, add the following define to the top of main.c
 ```C
@@ -1279,6 +1279,6 @@ Compile the project and flash it to your nRF5x DK. Open the nRF Connect app, con
 
 Memory Settings Keil | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="250"> |
 
 You should now see a value field appear below the "Properties" field and the value should be incrementing every second. Congratulations! You have now created a custom service and notified custom values!
