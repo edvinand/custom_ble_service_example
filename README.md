@@ -217,9 +217,9 @@ First, add the ble_cus,h file to the include list in main.c.
 ```
 The next step is to find the empty services_init function in main.c which should look like this
 ```C
-*/
-
+/*
 /**@brief Function for initializing services that will be used by the application.
+ *
  */
 static void services_init(void)
 {
@@ -331,9 +331,9 @@ The final step we have to do is to change the calling order in main() so that se
 This is because we need to add the CUSTOM_SERVICE_UUID_BASE to the BLE stack's table using sd_ble_uuid_vs_add() in ble_cus_init() before we call advertising_init(). Doing it the other way around will cause advertising_init() to return an error code.</br>
 That should be it. Compile the ble_app_template project, flash the S132 v6.1.1 SoftDevice *(If you use segger embedded Studio this is done automatically by the IDE)* and then flash the ble_app_template application. LED1 on your nRF52DK should now start blinking, indicating that it is advertising. Use nRF Connect for Android/iOS to scan for the device and view the content of the advertisement package. If you connect to the device you should see the service listed as an "Unknown Service" since we're using a vendor-specific UUID.
 
-Advertising Device  | Content of Advertisment Packet    | Service listed in the GATT table    |
------------- | ------------- | ------------- | 
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_advertising_device.png" width="250">  | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_advertisement_packet.png" width="250 "> | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_service.png" width="250"> |
+Advertising Device  |  Service listed in the GATT table    |
+------------ | ------------- | 
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_scanning.png" width="250">  | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_adv_service.jpg" width="250"> |
 
 ### Step 5 - Adding a custom Value Characteristic to the Custom Service.
 A Service is nothing without a characteristic, so let's add one of those by creating the custom_value_char_add function to ble_cus.c.</br>
@@ -519,7 +519,7 @@ Compile the project and flash it to your nRF52832 DK. If you open the nRF Connec
 
 Service and Characteristic | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_service_and_char.png" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_connected_service_char.jpg" width="1000"> |
 
 ### Step 6 - Handling events from the SoftDevice.
 Great, we now have a Custom Service and a Custom Value Characteristic, but we want to be able to write to the characteristic and perform a specific task based on the value that was written to the characteristic, e.g. turn on a LED. However, before we can do that we need to do some event handling in ble_cus.h and ble_cus.c.</br>
@@ -788,6 +788,10 @@ However, all this will be for nothing if we do not allow the peer to actually wr
 ```
 
 These two lines sets the write and read permissions to the characteristic value attribute to open, i.e. the peer is allowed to write/read the value without encrypting the link first. Now, try writing to the characteristic using nRF Connect for Desktop or Android/iOS. Every time a value is written to the characteristic, LED4 on the nRF5x DK should toggle.
+
+Write Button  |  Write value    |
+------------ | ------------- | 
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_button.jpg" width="250">  | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_write_value.jpg" width="250"> |
 
 **Challenge 1:** p_evt_write also has a data field. Use the data to decide if the LED is to be turned on of off. </br>
 
@@ -1207,7 +1211,10 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
 
 Compile the project and flash it to your nRF5x DK. If you open the nRF Connect app and connect to the device you should see that a Client Characteristic Configuration Descriptor has been added under the characteristic, by the field Properties: NOTIFY, and the three arrows pointing down, as shown in the screen shot below.
 
-</br>BILDE</br>
+Memory Settings Keil | 
+------------ |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="1000"> |
+
 We're now ready to notify some values from the nRF5x DK to the nRF Connect app. In order to do that we're going to create an application timer that calls ble_cus_custom_value_update() at a regular interval and then start it when we get the BLE_CUS_EVT_NOTIFICATION_ENABLED event. So first, add the following define to the top of main.c
 ```C
 /* This code belongs in main.c */
@@ -1268,6 +1275,10 @@ static void notification_timeout_handler(void * p_context)
     APP_ERROR_CHECK(err_code);
 }
 ```
-Compile the project and flash it to your nRF5x DK. Open the nRF Connect app, connect to the nRF5x DK and enable notification by clicking the button highlighted in the screenshot below.
-</br>BILDE</br>
+Compile the project and flash it to your nRF5x DK. Open the nRF Connect app, connect to the nRF5x DK and enable notification by clicking the button highlighted in the screenshot below. It should change from grey to blue.
+
+Memory Settings Keil | 
+------------ |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="1000"> |
+
 You should now see a value field appear below the "Properties" field and the value should be incrementing every second. Congratulations! You have now created a custom service and notified custom values!
