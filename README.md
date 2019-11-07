@@ -1,8 +1,7 @@
 # Custom Service Tutorial
 
-</br>
-Please note that this is just an updated version of @bjornspockeli's tutorial, adjusted to work with the SDK15.3.0. The previous version is found [here](https://github.com/bjornspockeli/custom_ble_service_example)
-</br>
+Please note that this is just an updated version of @bjornspockeli's tutorial, adjusted to work with the SDK15.3.0. The previous version is found [here](https://github.com/bjornspockeli/custom_ble_service_example) 
+</br></br>
 
 This tutorial will show you how to create a custom service with a custom value characteristic in the ble_app_template project found in the Nordic nRF5 SDK v15.3.0. This tutorial can be seen as the combined version of the BLE Advertising / Services / Characteristics , A Beginner's Tutorial series, which I strongly recommend to take a look at as they go deeper into the matter than this tutorial. Note, these tutorials are compatible with an older SDK version, but the theory regarding Bluetooth Low Energy has not changed much.
 
