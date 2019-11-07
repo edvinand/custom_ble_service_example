@@ -325,4 +325,4 @@ Memory Settings Segger Embedded Studio |
 
 Memory Settings Keil | 
 ------------ |
-<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_Keil.JPG" width="1000"> |
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_3_0_Keil.JPG" width="1000"> |
