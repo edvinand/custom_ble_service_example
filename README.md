@@ -330,3 +330,190 @@ Memory Settings Keil |
 The final step we have to do is to change the calling order in main() so that services_init() is called before advertising_init().
 This is because we need to add the CUSTOM_SERVICE_UUID_BASE to the BLE stack's table using sd_ble_uuid_vs_add() in ble_cus_init() before we call advertising_init(). Doing it the other way around will cause advertising_init() to return an error code.</br>
 That should be it. Compile the ble_app_template project, flash the S132 v6.1.1 SoftDevice *(If you use segger embedded Studio this is done automatically by the IDE)* and then flash the ble_app_template application. LED1 on your nRF52DK should now start blinking, indicating that it is advertising. Use nRF Connect for Android/iOS to scan for the device and view the content of the advertisement package. If you connect to the device you should see the service listed as an "Unknown Service" since we're using a vendor-specific UUID. 
+
+Advertising Device  | Content of Advertisment Packet    | Service listed in the GATT table    |
+------------ | ------------- | ------------- | 
+<img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_advertising_device.png" width="250">  | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_advertisement_packet.png" width="250 "> | <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_service.png" width="250"> |
+
+### Step 5 - Adding a custom Value Characteristic to the Custom Service.
+A Service is nothing without a characteristic, so let's add one of those by creating the custom_value_char_add function to ble_cus.c.</br>
+The first thing we have to do is to declare the function and then add several metadata variables that we will later populate, as shown in the snippet below.
+```C
+/* This code belongs in ble_cus.c */
+
+/**@brief Function for adding the Custom Value characteristic.
+ *
+ * @param[in]   p_cus        Custom Service structure.
+ * @param[in]   p_cus_init   Information needed to initialize the service.
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    ret_code_t          err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+}
+```
+Now starts the rather tedious part of populating all these variables. We'll start with char_md, which sets the properties that will be displayed to the central during cervice discovery.
+```C
+/* This code belongs in custom_value_char_add() in ble_cus.c*/
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read   = 1;
+    char_md.char_props.write  = 1;
+    char_md.char_props.notify = 0; 
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = NULL; 
+    char_md.p_sccd_md         = NULL;
+}
+```
+So we want to be able to both write and read to our Custom Value characteristic, but we do not want to enable the notify property until later. Next we're going to populate the attr_md, which actually sets the properties (i.e. accessibility of the attribute).
+```C
+    /* This code belongs in custom_value_char_add() in ble_cus.c*/
+
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    attr_md.read_perm  = p_cus_init->custom_value_char_attr_md.read_perm;
+    attr_md.write_perm = p_cus_init->custom_value_char_attr_md.write_perm;
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 0;
+}
+```
+
+The permissions set in the attr_md struct should correspond with the properties set in the characteristic metadata struct char_md. We're going to provide the permissions in the Custom Service init structure that we pass to ble_cus_init in services_init(). The .vloc option is set to BLE_GATTS_VLOCK_STACK as we want the characteristic to be stored in the SoftDevice RAM section, and not in the Application RAM section.</br>
+The next variable that we have to populate is the ble_uuid, which is going to hold our CUSTOM_VALUE_CHAR_UUID and is of the same type as the CUSTOM_SERVICE_UUID_BASE, i.e. vendor specific, which we specified in the .uuid_type field of Custom Service structure when we added the CUSTOM_SERVICE_UUID_BASE to the BLE stack's table.
+```C
+    /* This code belongs in custom_value_char_add() in ble_cus.c*/
+
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = CUSTOM_VALUE_CHAR_UUID;
+```
+
+Next, we're going to populate the attr_char_value struct, which sets the UUID, which points to the attribute metadata and sets the size of the characteristic, in our case a single byte (uint8_t).
+```C
+    /* This code belongs in custom_value_char_add() in ble_cus.c*/
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(uint8_t);
+```
+
+Finally, we're done populating structs and we can add our characteristic by calling sd_ble_gatts_characteristic_add() with the structs as arguments.
+```C
+/* This code belongs in custom_value_char_add() in ble_cus.c*/
+
+    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_cus->custom_value_handles);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
+```
+
+After all that hard work (copy-pasting) your custom_value_char_add() functino should look like this.
+```C
+/* This code belongs in ble_cus.c*/
+
+static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    ret_code_t          err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read   = 1;
+    char_md.char_props.write  = 1;
+    char_md.char_props.notify = 0; 
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = NULL; 
+    char_md.p_sccd_md         = NULL;
+    
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    attr_md.read_perm  = p_cus_init->custom_value_char_attr_md.read_perm;
+    attr_md.write_perm = p_cus_init->custom_value_char_attr_md.write_perm;
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 0;
+
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = CUSTOM_VALUE_CHAR_UUID;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(uint8_t);
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(uint8_t);
+
+    err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
+                                               &attr_char_value,
+                                               &p_cus->custom_value_handles);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+
+    return NRF_SUCCESS;
+}
+```
+
+The final step is to call custom_value_char_add() at the end of ble_cus_init the service has been added, i.e.
+```C
+uint32_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    if (p_cus == NULL || p_cus_init == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+
+    ret_code_t err_code;
+    ble_uuid_t ble_uuid;
+
+    // Initialize the service structure
+    p_cus->conn_handle                    = BLE_CONN_HANDLE_INVALID;
+
+    // Add Custom Service UUID
+    ble_uuid128_t base_uuid = {CUSTOM_SERVICE_UUID_BASE};
+    err_code = sd_ble_uuid_vs_add(&base_uuid, &p_cus->uuid_type);
+    VERIFY_SUCCESS(err_code);
+
+    ble_uuid.type = p_cus->uuid_type;
+    ble_uuid.uuid = CUSTOM_SERVICE_UUID;
+
+    err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_cus->service_handle);
+    if (err_code != NRF_SUCCESS)
+    {
+        return err_code;
+    }
+    // Add Custom Value charracteristic
+    return custom_value_char_add(p_cus, p_cus_init);
+}
+```
+
+Compile the project and flash it to your nRF52832 DK. If you open the nRF Connect app on your smartphone, scan and connect to the device, you should see that the characteristic has been added by clicking on the service, as shown in the screenshot below.
+
