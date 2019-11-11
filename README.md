@@ -83,7 +83,12 @@ static ble_cus_t _name;                                                         
 *Note1: The project does not compile at this point in time</br>
 Note2: Remember the `\` at the end of the line*</br>
 We will use this macro to define a custom service instance in main.c later in the tutorial.
-Ok, so far so good. Now we need to create two structures in ble_cus.h, one Custom Service init structure, ble_cus_init_t struct to hold all the options and data needed to initialize our custom service.
+Ok, so far so good. Now we need to create two structures in ble_cus.h, one Custom Service init structure, ble_cus_init_t struct to hold all the options and data needed to initialize our custom service. </br>
+Define your instance of m_cus near the top of main.c.
+```C
+/* This code belongs to main.c */
+BLE_CUS_DEF(m_cus);
+```
 ```C
 /* This code belongs in ble_cus.h*/
 
