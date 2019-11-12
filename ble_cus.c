@@ -140,8 +140,8 @@ static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t 
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
-    char_md.p_cccd_md         = NULL; 
-    char_md.p_sccd_md         = &cccd_md;
+    char_md.p_cccd_md         = &cccd_md; 
+    char_md.p_sccd_md         = &NULL;
     
     memset(&attr_md, 0, sizeof(attr_md));
 
