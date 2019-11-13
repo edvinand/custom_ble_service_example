@@ -32,7 +32,7 @@ Nordic Semiconductor added Segger Embedded Studio support in SDKv14.1.0 and the 
 4. Navigate to custom_ble_service_example\pca10040\s132\ses and open the `ble_app_template_pca10040_s132.emProject` project.
 
 ### Step 2 - Creating a Custom Base UUID
-The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file**. At the top of the header file ble_cus.h we'll need to include the following .h files:
+The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file**. In the top of the header file ble_cus.h we'll need to include the following .h files:
 ```C
 /* This code belongs in ble_cus.h */
 #include <stdint.h>
