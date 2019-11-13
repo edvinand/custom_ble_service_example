@@ -89,6 +89,7 @@ Define your instance of m_cus near the top of main.c.
 /* This code belongs to main.c */
 BLE_CUS_DEF(m_cus);
 ```
+*Note: When you use this macro in main.c with the input parameter `m_cus`, it means that you create a static ble_cus_t with the name "m_cus", which we can use later in main.c.
 ```C
 /* This code belongs in ble_cus.h*/
 
@@ -871,11 +872,13 @@ typedef void (*ble_cus_evt_handler_t) (ble_cus_t * p_cus, ble_cus_evt_t * p_evt)
 ```
 
 *If the project doesn't compile at this point in time, you need to change the order of your structs in ble_cus.h. The order should be:*
-1. ble_cus_evt_type_t
-2. ble_cus_evt_t
-3. typedef void (* ble_cus_evt_handler_t)
-4. ble_cus_init_t
-5. ble_cus_s
+1. typedef struct ble_cus_s ble_cus_t         // Forward declaration.
+2. #BLE_CUS_DEF(_name)                        // Dependent on ble_cus_t.
+2. ble_cus_evt_type_t                         // enum. Not dependent on other variables.
+3. ble_cus_evt_t                              // Dependent on ble_cus_evt_type_t. Therefore this needs to come after ble_cus_evt_type_t
+4. typedef void (* ble_cus_evt_handler_t)     // Dependent on ble_cus_evt_t (and the forwarded declaration of ble_cus_t)
+5. ble_cus_init_t                             // Dependent on ble_cus_evt_handler_t
+6. ble_cus_s                                  // the structure that describes ble_cus_t that we started with.
 
 Now, back in main.c we're going to create the event handler function on_cus_evt, which takes the same parameters as the ble_cus_evt_handler_t type.
 
@@ -917,6 +920,8 @@ Now, in order to propagate events from our service we need to assign the on_cus_
     // Set the cus event handler
     cus_init.evt_handler                = on_cus_evt;
 ```
+*note*: Make sure that cus_init.evt_handler is not 0 (NULL) when you call `ble_cus_init(&m_cus, &cus_init);` </br>
+
 We can now invoke this event handler from ble_cus.c by calling p_cus->evt_handler(p_cus, &evt) and as the example we'll invoke the event handler when we get the BLE_GAP_EVT_CONNECTED event, i.e. in the on_connect() function. It's fairly straight forward, we simply declare a ble_cus_evt_t variable and set its .evt_type field to the BLE_CUS_EVT_CONNECTED and then invoke the event handler with said event.
 ```C
  /* This code belongs in ble_cus.c*/
