@@ -1096,7 +1096,7 @@ Like the characteristic metadata we need to set the metadata of the CCCD in cust
     cccd_md.vloc       = BLE_GATTS_VLOC_STACK;
 ```
 We're setting the read and write permissions to the CCCD to open, i.e. no encryption is needed to write or read from the CCCD. The .vloc option is set to BLE_GATTS_VLOCK_STACK, which means that the value of the CCCD will be stored in the SoftDevice memory section, and not in the application memory section.</br>
-The next step is to add the Notify property to the Custom Value Characteristic and add a pointer to the CCCD metadata in the characteristic metadata. This is done by **modifying** (*NB: change the existing parameters where they are. They are already near the top of custom_value_char_add()*) the characteristic metadata properties in the custom_value_char_add() function, i.e. setting .notify to 1 and .p_cccd_md to point to the CCCD metadata struct.
+The next step is to add the Notify property to the Custom Value Characteristic and add a pointer to the CCCD metadata in the characteristic metadata. This is done by **modifying**  the characteristic metadata properties in the custom_value_char_add() function, i.e. setting .notify to 1 and .p_cccd_md to point to the CCCD metadata struct. (*NB: change the existing parameters where they are. They are already near the top of custom_value_char_add()*)
 ```C
 /* This code belongs in custom_value_char_add() in ble_cus.c*/
 
