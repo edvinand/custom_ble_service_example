@@ -27,12 +27,13 @@ Nordic Semiconductor added Segger Embedded Studio support in SDKv14.1.0 and the 
 # Tutorial Steps
 ### Step 1 - Getting started
 1. Download nRF5_SDK_15.3.0_59ac345 from the [download page](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs) and extract the zip to your drive, e.g. C:\NordicSemi\nRF5_SDK_15.3.0_59ac345.
-2. Navigate to the nRF5_SDK_15.3.0_59ac345/examples/ble_peripheral folder and find the ble_app_template project folder.
-3. Create a copy of the folder and name it `custom_ble_service_example`.
-4. Navigate to custom_ble_service_example\pca10040\s132\ses and open the `ble_app_template_pca10040_s132.emProject` project.
+2. Download Segger Embedded Studio from the [download page](https://www.segger.com/downloads/embedded-studio/) and install it on your computer.
+3. Navigate to the nRF5_SDK_15.3.0_59ac345/examples/ble_peripheral folder and find the ble_app_template project folder.
+4. Create a copy of the folder and name it `custom_ble_service_example`.
+5. Navigate to custom_ble_service_example\pca10040\s132\ses and open the `ble_app_template_pca10040_s132.emProject` project.
 
 ### Step 2 - Creating a Custom Base UUID
-The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file**. In the top of the header file ble_cus.h we'll need to include the following .h files:
+The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file**. To import the two files into our custom_ble_service example, please right click the "Application" folder in the project explorer in Segger Embedded Studio, click "Add existing file" and select your ble_cus.c file. To include the ble_cus.h file, just write `#include "ble_cus.h"` near the top of your main.c file. In the top of the header file ble_cus.h we'll need to include the following .h files:
 ```C
 /* This code belongs in ble_cus.h */
 #include <stdint.h>
