@@ -219,7 +219,7 @@ ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
 }
 ```
 The last if check is in fact redundant, but we will change this function later, adding more calls.
-### Step 4 - Initializing the Service and adavertising our 128-bit UUID.
+### Step 4 - Initializing the Service and advertising our 128-bit UUID.
 Now it's time to initialize the service in main.c and put our 128-bit UUID in the advertisement packet so that other BLE devices can see that our device has the Custom Service.</br>
 First, add the ble_cus,h file to the include list in main.c.
 ```C
