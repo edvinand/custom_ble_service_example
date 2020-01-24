@@ -319,6 +319,12 @@ to
 #define NRF_SDH_BLE_VS_UUID_COUNT 1
 ```
 Now, adding a vendor-specific UUID to the BLE stack results in the RAM requirement of the SoftDevice increasing, which we need to take into account.</br>
+_Note: If you are using the 16.0.0 SDK, the soft device size is different to the 15.3.0 SDK. The ram allocations for 16.0.0 are as follows:_</br>
+```
+RAM_START=0x20002270<br>
+RAM_SIZE=0x3DD90</br>
+```
+
 **GCC:** If you're compiling the code using armgcc then you need to open the ble_app_template_gcc_nrf52.ld file in the nRF5_SDK\nRF5_nRF5_SDK_15.3.0_59ac345\examples\ble_peripheral\custom_ble_service_example\pca10040\s132\armgcc folder and modify the memory section as shown below.
 ```
 MEMORY
