@@ -5,16 +5,16 @@ Please note that this is just an updated version of @bjornspockeli's tutorial, a
 
 This tutorial will show you how to create a custom service with a custom value characteristic in the ble_app_template project found in the Nordic nRF5 SDK v15.3.0. This tutorial can be seen as the combined version of the BLE Advertising / Services / Characteristics , A Beginner's Tutorial series, which I strongly recommend to take a look at as they go deeper into the matter than this tutorial. Note, these tutorials are compatible with an older SDK version, but the theory regarding Bluetooth Low Energy has not changed much.
 
-The aim of this tutorial is simply to create one service with one characteristic without too much theory in between the steps. There are no .c or .h files that needs to be downloaded as we will be starting from scratch in the ble_app_template project.
+The aim of this tutorial is simply to create one service with one characteristic without too much theory in between the steps. There are no .c or .h files that you need to download as we will be starting from scratch in the ble_app_template project.
 
-However, if you simply want to compile the example without doing the tutorial steps then you can be clone this repo into SDK v15.3.0/examples/ble_peripheral.
+However, if you simply want to compile the example without doing the tutorial steps then you can be clone this repo into SDK v16.0.0/examples/ble_peripheral.
 
 # HW Requirements
 - RF52 Development Kit
 
 # SW Requirements
-- nRF5 SDKv15.3.0 [(download page)](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs)
--Latest version of Segger Embedded Studio [(download page)](https://www.segger.com/downloads/embedded-studio/) or latest version of Keil ARM MDK [(download page)](https://www.keil.com/demo/eval/arm.htm) or the GCC ARM Embedded 7 2018-q2-update toolchain [(download page)](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads)
+- nRF5 SDKv16.0.0 [(download page)](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs)
+-Latest version of either Segger Embedded Studio [(download page)](https://www.segger.com/downloads/embedded-studio/), the latest version of Keil ARM MDK [(download page)](https://www.keil.com/demo/eval/arm.htm) or the GCC ARM Embedded 7 2018-q2-update toolchain [(download page)](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads)
 - nRF Connect for Mobile [(download page)](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Connect-for-mobile)
 - nRF Command Line Tools [(download page)](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Command-Line-Tools)
 
@@ -26,14 +26,21 @@ Nordic Semiconductor added Segger Embedded Studio support in SDKv14.1.0 and the 
 
 # Tutorial Steps
 ### Step 1 - Getting started
-1. Download nRF5_SDK_15.3.0_59ac345 from the [download page](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs) and extract the zip to your drive, e.g. C:\NordicSemi\nRF5_SDK_15.3.0_59ac345.
+1. Download nRF5_SDK_16.0.0 from the [download page](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs) and extract the zip to your drive, e.g. C:\NordicSemi\nRF5_SDK_16.0.0_98a08e2. (You can remove the numbers at the end of the SDK name. I'll refer to this as "SDK16.0.0" or "SDK16" from now)
 2. Download Segger Embedded Studio from the [download page](https://www.segger.com/downloads/embedded-studio/) and install it on your computer.
-3. Navigate to the nRF5_SDK_15.3.0_59ac345/examples/ble_peripheral folder and find the ble_app_template project folder.
+3. Navigate to the nRF5_SDK_15.0.0/examples/ble_peripheral folder and find the ble_app_template project folder.
 4. Create a copy of the folder and name it `custom_ble_service_example`.
 5. For nRF52832 DK: Navigate to custom_ble_service_example\pca10040\s132\ses and open the `ble_app_template_pca10040_s132.emProject` project.</br> For nRF52840 DK: Navigate to custom_ble_service_example\pca10056\s140\ses and open the `ble_app_template_pca10056_s140.emProject` project.
+6. To make it a bit easier to develop later, we will start by doing some changes in the config file. Open sdk_config.h (from the project explorer on the left hand side. Search for the following defines, and change them to:
+```c
+#define NRF_LOG_BACKEND_UART_ENABLED 1                    ->        #define NRF_LOG_BACKEND_UART_ENABLED 0
+#define NRF_LOG_BACKEND_RTT_ENABLED 0                     ->        #define NRF_LOG_BACKEND_RTT_ENABLED 1
+#define NRF_FPRINTF_FLAG_AUTOMATIC_CR_ON_LF_ENABLED 1     ->        #define NRF_FPRINTF_FLAG_AUTOMATIC_CR_ON_LF_ENABLED 0
+```
+All these changes are done to make the log appear in SES when you are doing a debug session. A useful tool.
 
 ### Step 2 - Creating a Custom Base UUID
-The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file**. To import the two files into our custom_ble_service example, please right click the "Application" folder in the project explorer in Segger Embedded Studio, click "Add existing file" and select your ble_cus.c file. To include the ble_cus.h file, just write `#include "ble_cus.h"` near the top of your main.c file. In the top of the header file ble_cus.h we'll need to include the following .h files:
+The first thing we need to do is to create a new .c file, let call it ble_cus.c (**Cu**stom **S**ervice), and its accompaning .h file, ble_cus.h. Create the two files **in the same folder as the main.c file. NB: This is not the same folder as the project file is located.** To import the two files into our custom_ble_service example, please right click the "Application" folder in the project explorer in Segger Embedded Studio, click "Add existing file" and select your ble_cus.c file. To include the ble_cus.h file, just write `#include "ble_cus.h"` near the top of your main.c file. In the top of the header file ble_cus.h we'll need to include the following .h files:
 ```C
 /* This code belongs in ble_cus.h */
 #include <stdint.h>
@@ -57,9 +64,9 @@ Now that we have defined our Base UUID, we need to define a 16-bit UUID for the 
 #define CUSTOM_SERVICE_UUID               0x1400
 #define CUSTOM_VALUE_CHAR_UUID            0x1401
 ```
-The values for the 16-bit UUIDs that will be inserted into the base UUID can be coosen by random.
+The values for the 16-bit UUIDs that will be inserted into the base UUID can be coosen by random. Choose something that is fairly easy to recognize.
 ### Step 3 - Implementing the Custom Service
-First things first, we need to include the ble_cus.h header file we just created as well as some common SDK header files in ble_cus.c.
+First things first, we need to include the ble_cus.h header file that we just created as well as some common SDK header files in ble_cus.c.
 ```C
 /* This code belongs in ble_cus.c */
 #include "sdk_common.h"
@@ -78,11 +85,10 @@ The next step is  to add a macro for defining a Custom Service (ble_cus) by addi
  * @param   _name Name of the instance.
  * @hideinitializer
  */
-#define BLE_CUS_DEF(_name)                                                                          \
-static ble_cus_t _name;                                                                             \
+#define BLE_CUS_DEF(_name)                                                          \
+static ble_cus_t _name;                                                             \
 ```
-*Note1: The project does not compile at this point in time</br>
-Note2: Remember the `\` at the end of the line*</br>
+*Note: Remember the `\` at the end of the line*</br>
 We will use this macro to define a custom service instance in main.c later in the tutorial.
 Ok, so far so good. Now we need to create two structures in ble_cus.h, one Custom Service init structure, ble_cus_init_t struct to hold all the options and data needed to initialize our custom service. </br>
 Define your instance of m_cus near the top of main.c.
@@ -102,7 +108,7 @@ typedef struct
     ble_srv_cccd_security_mode_t  custom_value_char_attr_md;      /**< Initial security level for Custom characteristics attribute */
 } ble_cus_init_t;
 ```
-*Note that the project still doesn't compile*<br/>
+*Note that the project should compile, but it should throw some errors.*<br/>
 The second struct that we need to create is the Custom Service structure, ble_cus_s, which holds the status information of the service.
 ```C
 /* This code belongs in ble_cus.h*/
@@ -116,15 +122,14 @@ struct ble_cus_s
     uint8_t                       uuid_type; 
 };
 ```
-*still doesn't compile.*<br/>
-The next step is to add a forward declaration of the ble_cus_t type. You need to insert this code *above* the `BLE_CUS_DEF` define
+
+The next step is to add a forward declaration of the ble_cus_t type.
 ```C
 /* This code belongs in ble_cus.h*/
 
 // Forward declaration of the ble_cus_t type.
 typedef struct ble_cus_s ble_cus_t;
 ```
-*Now the project should compile again*<br/>
 The first function we're going to implement is the ble_cus_init function, which we're going to initialize our service with. The first thing we need to do is to add its function declaration in the ble_cus.h file.
 ```C
 /* This code belongs in ble_cus.h */
@@ -181,8 +186,9 @@ We're almost done, the last thing we have to do is to add the Custom Service dec
 err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_cus->service_handle);
 if (err_code != NRF_SUCCESS)
 {
-    return err_code;
+    return err_code;    // This seems redundant, but we'll add more later
 }
+return err_code;
 ```
 If you have followed the steps correctly, then the ble_cus_init should look like this:
 ```C
@@ -213,7 +219,7 @@ ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &ble_uuid, &p_cus->service_handle);
     if (err_code != NRF_SUCCESS)
     {
-        return err_code;
+        return err_code;    // This seems redundant, but we'll add more later
     }
     return err_code;
 }
@@ -267,7 +273,7 @@ static void services_init(void)
      */
 }
 ```
-Ok, we're going to do as we're told, i.e. create a ble_cus_init_t struct and populate it with the necessary data and then pass it as an argument to our service init function ble_cus_init();
+Ok, we're going to do as we're told (but we'll skip some of the instructions for now). Let's start by creating a ble_cus_init_t struct and populate it with the necessary data and then pass it as an argument to our service init function ble_cus_init();
 ```C
 /* This code belongs in main.c */
 /**@brief Function for initializing services that will be used by the application.
@@ -319,26 +325,30 @@ to
 #define NRF_SDH_BLE_VS_UUID_COUNT 1
 ```
 Now, adding a vendor-specific UUID to the BLE stack results in the RAM requirement of the SoftDevice increasing, which we need to take into account.</br>
-_Note: If you are using the 16.0.0 SDK, the soft device size is different to the 15.3.0 SDK. The ram allocations for 16.0.0 are as follows:_</br>
+If you are using Segger Embedded Studio, and did the changes to sdk_config.h near the top of this tutorial, click "Build"->"Build and Debug". Make sure your DK is connected to the computer via the USB cable. If you click the green play button you should see a log (called "Debug Terminal") near the bottom of the screen. It should say something about the RAM changes for the application. I use an nRF52840 DK with SDK16.0.0, but if you use another version or another DK your numbers may vary. My log says:
 ```
-RAM_START=0x20002270<br>
-RAM_SIZE=0x3DD90</br>
+<info> app_timer: RTC: initialized.
+<warning> nrf_sdh_ble: Insufficient RAM allocated for the SoftDevice.
+<warning> nrf_sdh_ble: Change the RAM start location from 0x20002260 to 0x20002270.
+<warning> nrf_sdh_ble: Maximum RAM size for application is 0x3DD90.
+<error> nrf_sdh_ble: sd_ble_enable() returned NRF_ERROR_NO_MEM.
+<error> app: Fatal error
 ```
-
+The following figures show how you change the RAM settings in different IDEs. Note that the numbers are from an older version of this guide, but the method is the same. You want to set your location to 0x20002270 (or corresponding from your log), and set the size to 0x3DD90 (or corresponding from your log).
 **GCC:** If you're compiling the code using armgcc then you need to open the ble_app_template_gcc_nrf52.ld file in the nRF5_SDK\nRF5_nRF5_SDK_15.3.0_59ac345\examples\ble_peripheral\custom_ble_service_example\pca10040\s132\armgcc folder and modify the memory section as shown below.
 ```
 MEMORY
 {
   FLASH (rx) : ORIGIN = 0x26000, LENGTH = 0x5a000
-  RAM (rwx) : ORIGIN = 0x20002220, LENGTH = 0xdde0
+  RAM (rwx) : ORIGIN = 0x20002270, LENGTH = 0xdd90
 }
 ```
-**Segger Embedded Studio(SES):** Click "Project -> Edit Options", select the Common Configuration, then select Linker and then open the Section Placement Macros Section and modify RAM_START to 0x20002220 and RAM_SIZE to 0xDDE0, as shown in the screenshot below
+**Segger Embedded Studio(SES):** Click "Project -> Edit Options", select the Common Configuration, then select Linker and then open the Section Placement Macros Section and modify RAM_START to 0x20002270 and RAM_SIZE to 0xDD90, as shown in the screenshot below
 Memory Settings Segger Embedded Studio | 
 ------------ |
 <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/memory_settings_SDK_v15_3_0_SES.jpg" width="1000"> |
 
-**Keil:** Click "Options for Target" in Keil and modify the Read/Write Memory Areas so that IRAM1 has the start address 0x20002220 and size 0xDDE0, as shown in the screenshot below
+**Keil:** Click "Options for Target" in Keil and modify the Read/Write Memory Areas so that IRAM1 has the start address 0x20002270 and size 0xDD90, as shown in the screenshot below
 
 Memory Settings Keil | 
 ------------ |
@@ -354,7 +364,7 @@ Advertising Device  |  Service listed in the GATT table    |
 
 ### Step 5 - Adding a custom Value Characteristic to the Custom Service.
 A Service is nothing without a characteristic, so let's add one of those by creating the custom_value_char_add function to ble_cus.c.</br>
-The first thing we have to do is to declare the function and then add several metadata variables that we will later populate, as shown in the snippet below.
+The first thing we have to do is to declare the function and then add several metadata variables that we will later populate, as shown in the snippet below. Remember to either add a declaration of this function in ble_cus.h, or to physically add this function before ble_cus_init() in ble_cus.c.
 ```C
 /* This code belongs in ble_cus.c */
 
@@ -391,7 +401,7 @@ Now starts the rather tedious part of populating all these variables. We'll star
     char_md.p_sccd_md         = NULL;
 }
 ```
-So we want to be able to both write and read to our Custom Value characteristic, but we do not want to enable the notify property until later. Next we're going to populate the attr_md, which actually sets the properties (i.e. accessibility of the attribute).
+So we want to be able to both write and read to our Custom Value characteristic, but we do not want to enable the notification property until later. Next we're going to populate the attr_md, which actually sets the properties (i.e. accessibility of the attribute).
 ```C
     /* This code belongs in custom_value_char_add() in ble_cus.c*/
 
@@ -443,10 +453,17 @@ Finally, we're done populating structs and we can add our characteristic by call
     return NRF_SUCCESS;
 ```
 
-After all that hard work (copy-pasting) your custom_value_char_add() functino should look like this.
+After all that hard work (copy-pasting) your custom_value_char_add() function should look like this.
 ```C
 /* This code belongs in ble_cus.c*/
 
+/**@brief Function for adding the Custom Value characteristic.
+ *
+ * @param[in]   p_cus        Custom Service structure.
+ * @param[in]   p_cus_init   Information needed to initialize the service.
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
 static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
 {
     ret_code_t          err_code;
@@ -460,24 +477,24 @@ static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t 
 
     char_md.char_props.read   = 1;
     char_md.char_props.write  = 1;
-    char_md.char_props.notify = 0; 
+    char_md.char_props.notify = 1;
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
-    char_md.p_cccd_md         = NULL; 
+    char_md.p_cccd_md         = NULL;
     char_md.p_sccd_md         = NULL;
     
     memset(&attr_md, 0, sizeof(attr_md));
 
-    attr_md.read_perm  = p_cus_init->custom_value_char_attr_md.read_perm;
-    attr_md.write_perm = p_cus_init->custom_value_char_attr_md.write_perm;
-    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
-    attr_md.rd_auth    = 0;
-    attr_md.wr_auth    = 0;
-    attr_md.vlen       = 0;
+    attr_md.read_perm         = p_cus_init->custom_value_char_attr_md.read_perm;
+    attr_md.write_perm        = p_cus_init->custom_value_char_attr_md.write_perm;
+    attr_md.vloc              = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth           = 0;
+    attr_md.wr_auth           = 0;
+    attr_md.vlen              = 0;
 
-    ble_uuid.type = p_cus->uuid_type;
-    ble_uuid.uuid = CUSTOM_VALUE_CHAR_UUID;
+    ble_uuid.type             = p_cus->uuid_type;
+    ble_uuid.uuid             = CUSTOM_VALUE_CHAR_UUID;
 
     memset(&attr_char_value, 0, sizeof(attr_char_value));
 
@@ -488,14 +505,16 @@ static ret_code_t custom_value_char_add(ble_cus_t * p_cus, const ble_cus_init_t 
     attr_char_value.max_len   = sizeof(uint8_t);
 
     err_code = sd_ble_gatts_characteristic_add(p_cus->service_handle, &char_md,
-                                               &attr_char_value,
-                                               &p_cus->custom_value_handles);
+                                              &attr_char_value,
+                                              &p_cus->custom_value_handles);
+    
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
     }
 
     return NRF_SUCCESS;
+
 }
 ```
 
@@ -512,7 +531,7 @@ ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     ble_uuid_t ble_uuid;
 
     // Initialize the service structure
-    p_cus->conn_handle                    = BLE_CONN_HANDLE_INVALID;
+    p_cus->conn_handle              = BLE_CONN_HANDLE_INVALID;
 
     // Add Custom Service UUID
     ble_uuid128_t base_uuid = {CUSTOM_SERVICE_UUID_BASE};
@@ -527,7 +546,8 @@ ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
     {
         return err_code;
     }
-    // Add Custom Value charracteristic
+
+    // Add the Custom Value Characteristic
     return custom_value_char_add(p_cus, p_cus_init);
 }
 ```
@@ -554,14 +574,14 @@ Lastly, we're going to add the ble_cus_on_ble_evt function declaration to ble_cu
  * @param[in]   p_ble_evt  Event received from the BLE stack.
  * @param[in]   p_context  Custom Service structure.
  */
-void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
+void ble_cus_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
 ```
 
 We're now going to implement the ble_cus_on_ble_evt event handler in ble_cus.c. Upon entry it's considered as good practice to check that none of the pointers that we provide as arguments are NULL.
 ```C
 /* This code belongs in ble_cus.c*/
 
-void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
+void ble_cus_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
 {
     ble_cus_t * p_cus = (ble_cus_t *) p_context;
     
@@ -577,7 +597,7 @@ After the NULL check we're going to add a switch-case to check which event that 
 
 void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
 {
-    ble_cus_t * p_cus = (ble_cus_t *) p_context;
+    ble_cus_t * p_cus = (ble_cus_t *)p_context;
     
     if (p_cus == NULL || p_ble_evt == NULL)
     {
@@ -727,7 +747,7 @@ Now, once we get the Write event we have to get hold of the Write event paramete
 
 static void on_write(ble_cus_t * p_cus, ble_evt_t const * p_ble_evt)
 {
-    ble_gatts_evt_write_t * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+    ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
     
     // Check if the handle passed with the event matches the Custom Value Characteristic handle.
     if (p_evt_write->handle == p_cus->custom_value_handles.value_handle)
@@ -785,7 +805,7 @@ void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
 }
 ```
 
-However, all this will be for nothing if we do not allow the peer to actually write and/or read from the characteristic value. This is done by adding two lines to custom_value_char_add() in ble_cus.c before the call to sd_ble_gatts_service_add(...)
+However, all this will be for nothing if we do not allow the peer to actually write and/or read from the characteristic value. This is done by adding two lines to custom_value_char_add() in ble_cus.c **before the call to sd_ble_gatts_service_add(...)**.
 ```C
 /* This code belongs in custom_value_char_add() in ble_cus.c */
     ...
@@ -839,13 +859,23 @@ struct ble_cus_s
 ```
 *Note that the project will not compile at this point.*
 
-After adding the event handler to the structures we must make sure that we initialize our service correctly in ble_cus_init()
+After adding the event handler to the structures we must make sure that we initialize our service correctly in ble_cus_init(). In addition, we should check that the event handler isn't a NULL pointer, and hence an empty call.
 ```C
- /* This code belongs in ble_cus_init() in ble_cus.c*/
+This code belongs to ble_cus_init() in ble_cus.c.
 
-// Initialize service structure
-p_cus->evt_handler               = p_cus_init->evt_handler;
-p_cus->conn_handle               = BLE_CONN_HANDLE_INVALID;
+ret_code_t ble_cus_init(ble_cus_t * p_cus, const ble_cus_init_t * p_cus_init)
+{
+    if (p_cus == NULL || p_cus_init == NULL || p_cus_init->evt_handler == NULL)
+    {
+        return NRF_ERROR_NULL;
+    }
+    
+    ret_code_t err_code;
+    ble_uuid_t ble_uuid;
+    
+    // Initialize the service strucure
+    p_cus->evt_handler               = p_cus_init->evt_handler;
+    p_cus->conn_handle               = BLE_CONN_HANDLE_INVALID;
 ```
 
 Next, we need to declare an event type specific to our service
@@ -879,13 +909,13 @@ typedef void (*ble_cus_evt_handler_t) (ble_cus_t * p_cus, ble_cus_evt_t * p_evt)
 ```
 
 *If the project doesn't compile at this point in time, you need to change the order of your structs in ble_cus.h. The order should be:*
-1. typedef struct ble_cus_s ble_cus_t         // Forward declaration.
-2. #BLE_CUS_DEF(_name)                        // Dependent on ble_cus_t.
-2. ble_cus_evt_type_t                         // enum. Not dependent on other variables.
-3. ble_cus_evt_t                              // Dependent on ble_cus_evt_type_t. Therefore this needs to come after ble_cus_evt_type_t
-4. typedef void (* ble_cus_evt_handler_t)     // Dependent on ble_cus_evt_t (and the forwarded declaration of ble_cus_t)
-5. ble_cus_init_t                             // Dependent on ble_cus_evt_handler_t
-6. ble_cus_s                                  // the structure that describes ble_cus_t that we started with.
+1. #BLE_CUS_DEF(_name)                        // Dependent on ble_cus_t.
+2. typedef struct ble_cus_s ble_cus_t         // Forward declaration.
+3. ble_cus_evt_type_t                         // enum. Not dependent on other variables.
+4. ble_cus_evt_t                              // Dependent on ble_cus_evt_type_t. Therefore this needs to come after ble_cus_evt_type_t
+5. typedef void (* ble_cus_evt_handler_t)     // Dependent on ble_cus_evt_t (and the forwarded declaration of ble_cus_t)
+6. ble_cus_init_t                             // Dependent on ble_cus_evt_handler_t
+7. ble_cus_s                                  // the structure that describes ble_cus_t that we started with.
 
 Now, back in main.c we're going to create the event handler function on_cus_evt, which takes the same parameters as the ble_cus_evt_handler_t type.
 
@@ -927,7 +957,7 @@ Now, in order to propagate events from our service we need to assign the on_cus_
     // Set the cus event handler
     cus_init.evt_handler                = on_cus_evt;
 ```
-*note*: Make sure that cus_init.evt_handler is not 0 (NULL) when you call `ble_cus_init(&m_cus, &cus_init);` </br>
+**NB: Make sure that cus_init.evt_handler is not 0 (NULL) when you call `ble_cus_init(&m_cus, &cus_init);`** </br>
 
 We can now invoke this event handler from ble_cus.c by calling p_cus->evt_handler(p_cus, &evt) and as the example we'll invoke the event handler when we get the BLE_GAP_EVT_CONNECTED event, i.e. in the on_connect() function. It's fairly straight forward, we simply declare a ble_cus_evt_t variable and set its .evt_type field to the BLE_CUS_EVT_CONNECTED and then invoke the event handler with said event.
 ```C
@@ -1007,7 +1037,8 @@ Next we're going to update the value in the GATT table with our custom_value tha
     }
 ```
 
-After updating the value in the GATT table we're ready to notify our peer that the value of our Custom Value Characteristic has changed.
+After updating the value in the GATT table we're ready to notify our peer that the value of our Custom Value Characteristic has changed. </br>
+The first thing we should do is to verify that we have a valid connection handle, i.e. that we're actually connected to a peer. If not, we should return an error indicating that we're in an invalid state. Nect, we set the ble_gatts_hvx_params_t, which contains the handle of the custom value attribute, the type (i.e. Notification or Indication), the value offset (only used if it's larger than the MTU for the connection, but don't worry about that just yet), and the length of the data.After setting the hvx_params, we notify the peer by calling sd_ble_gatts_hvx(). Lastly, we should return the error_code.</br>
 ```C
 /* This code belongs in ble_cus_custom_value_update() in ble_cus.c*/
 
@@ -1035,7 +1066,7 @@ After updating the value in the GATT table we're ready to notify our peer that t
 
 ```
 
-The first thing we should do is to verify that we have a valid connection handle, i.e. that we're actually connected to a peer. If not, we should return an error indicating that we're in an invalid state. Nect, we set the ble_gatts_hvx_params_t, which contains the handle of the custom value attribute, the type (i.e. Notification or Indication), the value offset (only used if it's larger than the MTU for the connection, but don't worry about that just yet), and the length of the data.After setting the hvx_params, we notify the peer by calling sd_ble_gatts_hvx(). Lastly, we should return the error_code.</br>
+
 
 After adding the code snippets above ble_cus_custom_value_update should look like below
 ```C
@@ -1090,6 +1121,7 @@ ret_code_t ble_cus_custom_value_update(ble_cus_t * p_cus, uint8_t custom_value)
 ```
 The CCCD *(Client Characteristic Configuration Descriptor)* is a field which is used to enable notifications *(CCCD = 0x01)* or Indications *(CCCD = 0x02)*.
 Like the characteristic metadata we need to set the metadata of the CCCD in custom_value_char_add(), which is done by adding the following snippet before the characteristic metadata is set.
+*The characteristic's metadata is set with the lines starting with char_md. ... = x;
 
 ```C
 /* This code belongs in custom_value_char_add() in ble_cus.c*/
@@ -1120,10 +1152,10 @@ However, before modifying the on_write() function we need to add two additional 
 /**@brief Custom Service event type. */
 typedef enum
 {
-    BLE_CUS_EVT_NOTIFICATION_ENABLED,                             /**< Custom value notification enabled event. */
-    BLE_CUS_EVT_NOTIFICATION_DISABLED,                            /**< Custom value notification disabled event. */
-    BLE_CUS_EVT_DISCONNECTED,
-    BLE_CUS_EVT_CONNECTED
+    BLE_CUS_EVT_NOTIFICATION_ENABLED,                   /**< Custom value notification enabled event. */
+    BLE_CUS_EVT_NOTIFICATION_DISABLED,                  /**< Custom value notification disabled event. */
+    BLE_CUS_EVT_DISCONNECTED,                           /**< Custom service connected event. */
+    BLE_CUS_EVT_CONNECTED                               /**< Custom service disconnected event. */
 } ble_cus_evt_type_t;
 ```
 
@@ -1289,7 +1321,7 @@ static void notification_timeout_handler(void * p_context)
     UNUSED_PARAMETER(p_context);
     ret_code_t err_code;
     
-    // Increment the value of m_custom_value before nortifing it.
+    // Increment the value of m_custom_value before notifying it.
     m_custom_value++;
     
     err_code = ble_cus_custom_value_update(&m_cus, m_custom_value);
