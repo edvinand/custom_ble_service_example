@@ -1264,7 +1264,7 @@ static void on_cus_evt(ble_cus_t     * p_cus_service,
 
 Compile the project and flash it to your nRF5x DK. If you open the nRF Connect app and connect to the device you should see that a Client Characteristic Configuration Descriptor has been added under the characteristic, by the field Properties: NOTIFY, and the three arrows pointing down, as shown in the screen shot below.
 
-Memory Settings Keil | 
+Enable Notifications nRF Connect | 
 ------------ |
 <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="250"> |
 
@@ -1330,7 +1330,7 @@ static void notification_timeout_handler(void * p_context)
 ```
 Compile the project and flash it to your nRF5x DK. Open the nRF Connect app, connect to the nRF5x DK and enable notification by clicking the button highlighted in the screenshot below. It should change from grey to blue.
 
-Memory Settings Keil | 
+Enable Notifications nRF Connect | 
 ------------ |
 <img src="https://github.com/edvinand/custom_ble_service_example/blob/master/images/nRF_Connect_notifications.jpg" width="250"> |
 
