@@ -47,6 +47,7 @@ The first thing we need to do is to create a new .c file, let call it ble_cus.c 
 #include <stdbool.h>
 #include "ble.h"
 #include "ble_srv_common.h"
+#include "sdk_common.h"
 ```
 Next, we're going to need a 128-bit UUID for our custom service since we're not going to implement our service with one of the 16-bit Bluetooth SIG UUIDs that are reserved for standardized profiles. There are several ways to generate a 128-bit UUID, but we'll use [this](https://www.uuidgenerator.net/version4) Online UUID generator. The webpage will generate a random 128-bit UUID, which in my case was
 ```
