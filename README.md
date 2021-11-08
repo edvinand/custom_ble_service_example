@@ -806,7 +806,7 @@ void ble_cus_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context)
 }
 ```
 
-However, all this will be for nothing if we do not allow the peer to actually write and/or read from the characteristic value. This is done by adding two lines to custom_value_char_add() in ble_cus.c **before the call to sd_ble_gatts_service_add(...)**.
+However, all this will be for nothing if we do not allow the peer to actually write and/or read from the characteristic value. This is done by adding two lines to custom_value_char_add() in ble_cus.c **before the call to sd_ble_gatts_characteristic_add(...)**.
 ```C
 /* This code belongs in custom_value_char_add() in ble_cus.c */
     ...
