@@ -10,7 +10,7 @@ The aim of this tutorial is simply to create one service with one characteristic
 However, if you simply want to compile the example without doing the tutorial steps then you can be clone this repo into SDK v16.0.0/examples/ble_peripheral.
 
 # HW Requirements
-- RF52 Development Kit
+- nRF52 Development Kit
 
 # SW Requirements
 - nRF5 SDKv16.0.0 [(download page)](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK/Download#infotabs)
